@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
 using Newtonsoft.Json;
@@ -9,7 +8,7 @@ namespace TechMentor.Controllers
 {   
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    // [Authorize]
 
     public class UploadController : ControllerBase
     {
@@ -35,7 +34,6 @@ namespace TechMentor.Controllers
         }
 
         [HttpGet("{label}")]
-        // [Authorize]
         public IActionResult CheckIfExistsInRedisDB(string label)
         {
             // Verifica se a chave (title) existe no cache Redis
@@ -52,7 +50,6 @@ namespace TechMentor.Controllers
         }
 
         [HttpPost("uploadGif")]
-        // [Authorize]
         public async Task<IActionResult> UploadGif([FromForm] GifUploadModel model)
         {
             if (model.Gif != null && model.Gif.Length > 0)
