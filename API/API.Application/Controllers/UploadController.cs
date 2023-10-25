@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
 using Newtonsoft.Json;
@@ -8,6 +9,7 @@ namespace TechMentor.Controllers
 {   
     [ApiController]
     [Route("api/[controller]")]
+    [EnableCors]
     // [Authorize]
 
     public class UploadController : ControllerBase
@@ -49,33 +51,39 @@ namespace TechMentor.Controllers
             }
         }
 
-        [HttpPost("uploadGif")]
-        public async Task<IActionResult> UploadGif([FromForm] GifUploadModel model)
-        {
-            if (model.Gif != null && model.Gif.Length > 0)
-            {
-                var gifFileName = $"{Guid.NewGuid()}.gif";
-                var gifFullPath = Path.Combine(gifsFolderPath, gifFileName);
+        [HttpPost("uploadData")]
+        public async Task<IActionResult> UploadData([FromForm] DataUploadModel model)
+        { 
+          try{
+              if (model.Gif != null && model.Gif.Length > 0)
+              {
+                  var gifFileName = $"{Guid.NewGuid()}.gif";
+                  var gifFullPath = Path.Combine(gifsFolderPath, gifFileName);
 
-                using (var stream = new FileStream(gifFullPath, FileMode.Create))
-            {
-                await model.Gif.CopyToAsync(stream);
-            }
+                  using (var stream = new FileStream(gifFullPath, FileMode.Create))
+              {
+                  await model.Gif.CopyToAsync(stream);
+              }
 
-            // Armazenar o caminho do GIF no Redis juntamente com o rótulo
-            var gifData = new GifData(model.Label, gifFullPath);
-            var serializedData = JsonConvert.SerializeObject(gifData);
+              // Armazenar o caminho do GIF no Redis juntamente com o rótulo
+              var gifData = new GifData(model.Label, gifFullPath);
+              var serializedData = JsonConvert.SerializeObject(gifData);
 
-            // Adicione logs de depuração para registrar as chaves e valores no Redis
-            _logger.LogInformation($"Chave no Redis: {"GifKeys"}");
-            _logger.LogInformation($"Valor no Redis: {serializedData}");
+              // Adicione logs de depuração para registrar as chaves e valores no Redis
+              _logger.LogInformation($"Chave no Redis: {"GifKeys"}");
+              _logger.LogInformation($"Valor no Redis: {serializedData}");
 
-            await _cache.SetStringAsync(model.Label, serializedData);
+              await _cache.SetStringAsync(model.Label, serializedData);
 
-            return Ok($"GIF '{model.Label}' carregado com sucesso e armazenado no Redis.");
+              return Ok($"GIF '{model.Label}' Carregado com sucesso e armazenado no Redis.");
+          }
+
+          return BadRequest("Não recebeu o dado.");
         }
-
-        return BadRequest("Erro no envio do GIF.");
+        catch(Exception ex){
+              _logger.LogError(ex, "Erro ao processar a solicitação de upload de GIF.");
+              return StatusCode(500, "Erro interno ao processar a solicitação de upload de GIF.");
+        }
     }
 
     

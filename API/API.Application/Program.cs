@@ -1,7 +1,21 @@
 using Microsoft.OpenApi.Models;
 using TechMentor.Persistence;
+using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configurar o CORS
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(builder =>
+    {
+      builder.WithOrigins("http://localhost:4200") // Substitua pelo domínio do seu aplicativo Angular
+        .AllowAnyHeader()
+        .AllowAnyMethod();
+    });
+});
 
 // Add services to the container.
 builder.Services.AddStackExchangeRedisCache(options =>
@@ -80,9 +94,12 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseAuthentication(); // Adicione isso antes do UseAuthorization
+// app.UseAuthentication(); // Adicione isso antes do UseAuthorization
 
 app.UseAuthorization();
+
+// Call the CORS
+app.UseCors();
 
 app.MapControllers();
 
